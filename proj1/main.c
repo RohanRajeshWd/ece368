@@ -1,2 +1,6 @@
 //main
+#include <stdio.h>
+
+
+
 
