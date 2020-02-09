@@ -1,16 +1,19 @@
-//main
-//:NE
+
+#include "shell_array.h"
 #include<stdio.h>
+void printArr(long *Arr, int * size);
+long* Array_Load_From_File(char*filename, int*size);
 
 
 
-int main(void){
-  int i=0;
-  int j=1;
-  int k = i+j;
-  printf("hello");
- 
-
+int main(int argc, char ** argv){
+  FILE*fp = fopen(argv[1], "r");
+  //argv[1] is input file name
+  //argv[2] is an output
+  int *size;
+  long * Arr = Array_Load_From_File(argv[1], size);
+  printArr(Arr, size);
+  
 }
 
 
