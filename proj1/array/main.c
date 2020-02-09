@@ -7,7 +7,7 @@ long* Array_Load_From_File(char*filename, int*size);
 
 
 int main(int argc, char ** argv){
-  FILE*fp = fopen(argv[1], "r");
+
   //argv[1] is input file name
   //argv[2] is an output
   int *size;

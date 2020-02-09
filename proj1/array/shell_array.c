@@ -12,8 +12,11 @@ void printArr(long * Arr, int *size)
 
 long* Array_Load_From_File(char*filename, int*size)
 {
- FILE*fp=fopen("filename", "r");
- char imp;
+ FILE*fp;
+ fp=fopen("filename", "r");
+ if (fp ==NULL){
+  printf("nope");
+ } 
  fseek(fp,0,SEEK_END);
  int len = ftell(fp);
  fseek(fp,0,SEEK_SET);
@@ -23,5 +26,14 @@ long* Array_Load_From_File(char*filename, int*size)
  fclose(fp);
  *size = numInt;
  return(Arr);
-
 }
+
+
+
+void Array_Shellsort(long*array, int size, long *n_comp){
+  int tempArr[size/ *n_comp];
+  for (int i=0; i<size; i=i+ *n_comp){
+    if //arr is full
+      //sort arr
+
+
