@@ -13,7 +13,7 @@ void printArr(long * Arr, int *size)
 long* Array_Load_From_File(char*filename, int*size)
 {
  FILE*fp;
- fp=fopen("filename", "r");
+ fp=fopen(filename, "r");
  if (fp ==NULL){
   printf("nope");
  } 
@@ -30,10 +30,10 @@ long* Array_Load_From_File(char*filename, int*size)
 
 
 
-void Array_Shellsort(long*array, int size, long *n_comp){
+/* void Array_Shellsort(long*array, int size, long *n_comp){
   int tempArr[size/ *n_comp];
   for (int i=0; i<size; i=i+ *n_comp){
     if //arr is full
       //sort arr
 
-
+*/
