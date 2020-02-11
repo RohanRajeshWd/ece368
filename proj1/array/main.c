@@ -23,8 +23,13 @@ int main(int argc, char ** argv){
   Array_Shellsort(Arr,size,  n_comp);
   //printArr(Arr, size);
   int numSaved;
- numSaved = Array_Save_To_File( argv[3] , Arr, size);
- numSaved = numSaved+0;//wouldnt compile without a warning unless i added this line
+  printf("%ld\n",n_comp);
+  numSaved = Array_Save_To_File( argv[3] , Arr, size);
+ if (numSaved ==0) {
+   return (0);
+ }
+  //wouldnt compile without a warning unless i added this line
+ 
  free(Arr);
   return(0);  
   }

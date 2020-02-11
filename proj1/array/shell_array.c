@@ -36,7 +36,7 @@ static void sorting( long *array, int k, long * n_comp, int size){
 long* Array_Load_From_File(char*filename, int*size)
 {
  FILE*fp;
- fp=fopen(filename, "r");
+ fp=fopen(filename, "rb");
  if (fp ==NULL){
    *size = 0;
    return (NULL);//null adress
@@ -95,11 +95,11 @@ void Array_Shellsort(long*array, int size, long *n_comp){
     
 int Array_Save_To_File(char*filename, long *array, int size){
   FILE *fp = fopen (filename, "wb");
-  if  ((array == NULL)||(size ==0){
-      fclose;
+  if  ((array == NULL)||(size ==0)){
+      fclose(fp);
       }
   int retvalue = fwrite(array, sizeof(long), size, fp);
-
+  fclose(fp);
   return(retvalue);
 }
 
