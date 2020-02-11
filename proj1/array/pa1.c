@@ -18,14 +18,13 @@ int main(int argc, char ** argv){
   if (strcmp(argv[1], "-a")==0) {
   int size;
   long * n_comp;
+  
   long * Arr = Array_Load_From_File(argv[2], &size);
   //printArr(Arr, size);
   Array_Shellsort(Arr,size,  n_comp);
   //printArr(Arr, size);
-  int numSaved;
- numSaved = Array_Save_To_File( argv[3] , Arr, size);
- numSaved = numSaved+0;//wouldnt compile without a warning unless i added this line
- free(Arr);
+  int numSaved = Array_Save_To_File( argv[3] , Arr, size);
+  free(Arr);
   return(0);  
   }
 } 
