@@ -1,10 +1,10 @@
 #define__PACKING.H__
 
-struct RecNode{
+struct Node{
   int len;
   int width;
   int label;
-  char type;
+  char type;  //1 = V, 2= H, 3= LEAF
   struct recNode * left;
   struct recNode * right;
 }
