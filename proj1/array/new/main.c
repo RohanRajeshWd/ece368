@@ -2,15 +2,76 @@
 #include <stdlib.h>
 #include<string.h>
 #include<ctype.h>
+
+//#include "packing.h"
+//declarations
+int input(char*filename,  int* postIndex, char *file1, char* file2);
+void makeTree(int *wArr, int *hArr,int* typeArr, int *postIndex, FILE * fp1, FILE *fp2);
+struct Node* buildTree(struct Node *node, int *wArr, int *hArr, int* typeArr, int*postIndex, int size );
+struct Node * newNode(int* hArr, int* wArr, int* typeArr, int * postIndex, struct Node *node);
+void printPoD(struct Node*node, FILE*fp);
+ 
+int Space(struct Node*node);
+//void printPre(struct Node*node);
+void printPreD(struct Node*node, FILE*fp);
+void addStuff( struct Node * node);
+void deleteTree(struct Node* node); 
 struct Node{
   int height;
   int width;
   
   int type;  //1 = V, 2= H, 3= LEAF
-  struct recNode * left;
-  struct recNode * right;
+  struct Node * left;
+  struct Node * right;
 } ;
-int input(char*filename,  int* postIndex){
+void deleteTree(struct Node* node)  
+{ 
+    if (node == NULL) return; 
+  
+    /* first delete both subtrees */
+    deleteTree(node->left); 
+    deleteTree(node->right); 
+    
+    /* then delete the node */
+    //printf("\n Deleting node: %d", node->data); 
+    free(node); 
+}  
+void addStuff( struct Node * node){
+  
+ if (node->type == -1) //v
+ {
+  node->width = node->left->width+node->right->width;
+  if (node->left->height>node->right->height){
+    node->height = node->left->height;
+  }
+  else{
+    node->height= node->right->height;
+  }
+  
+}
+if (node->type == -2)//h
+ {
+   node->height = node->left->height +node -> right -> height;
+   if (node->left->width>node->right->width){
+    node->width = node->left->width;
+   }
+   else{
+    node->width = node->right->width;
+  }
+  
+   }
+ 
+ 
+ if(node->type>0){
+   return;
+}
+addStuff(node->right);
+addStuff(node->left);
+
+ 
+  
+}
+int input(char*filename,  int* postIndex, char *file1, char* file2){
   FILE*fp;
   int size;
   size = 0;
@@ -21,7 +82,7 @@ int input(char*filename,  int* postIndex){
   //size = countLine(fp);
   if (fp ==NULL){
     //*size = 0;
-    return NULL;
+    //return NULL; kys gcc you wothless piece of shit
   }
 
   char c;
@@ -107,86 +168,125 @@ int input(char*filename,  int* postIndex){
 
 
   fclose(fp);
-  printf("\n%d\n",size);
-  /*for (int j =0; j<size; j++){
+  /*printf("\n%d\n",size);
+  for (int j =0; j<size; j++){
       printf("%d %d %d",typeArr[j], wArr[j], hArr[j]);
       printf("\n");
       
   }*/
-  *PostIndex = size-1;
+  *postIndex = size-1;
+  FILE *fp1 = fopen(file1, "w");
+  FILE *fp2 = fopen(file2, "w");
   
- Node * root = makeTree(wArr, hArr, typeArr, &PostIndex);
+ makeTree(wArr, hArr, typeArr, postIndex, fp1, fp2);
+ fclose(fp1);
+ fclose(fp2);
+ free(typeArr);
+ free(wArr);
+ free(hArr);
+
+ return 0;
 }
-Node * makeTree(int *wArr[], int *hArr[],int* typeArr[], int *PostIndex){
-  int size = *PostIndex;
-  *PostIndex= 0;
-  Node * root = newNode(hArr, wArr, typeArr, PostIndex);
-  
-  builtTree(root->right, wArr, hArr, typeArr, PostIndex, size)
-  builtTree(root->left, wArr, hArr, typeArr, PostIndex, size)
-  printPre(root);
-  return root;
+void makeTree(int *wArr, int *hArr,int* typeArr, int *postIndex, FILE * fp1, FILE *fp2){
+  int size = *postIndex;
+  *postIndex= 0;
+  //root = (struct Node*)malloc(sizeof(struct Node));
+  struct Node * root; //= newNode(hArr, wArr, typeArr, postIndex);
+  root = (struct Node*)malloc(sizeof(struct Node));
+  root = buildTree(root, wArr, hArr, typeArr, postIndex, size);
+  //buildTree(root->left, wArr, hArr, typeArr, postIndex, size);
+  printf("before\n");
+  printPreD(root, fp1);
+  addStuff(root);
+  printf("after\n");
+  printPoD(root, fp2);
+  deleteTree(root);  
+  if (root == NULL){
+    printf("NULL");
+  }
+  //printf("%d \n", root->type);
+ 
 }
-Node* buildTree(node, int wArr, int hArr, int typeArr, int*PostIndex, int size ){
-  if (size<PostIndex){ //BASE CASE
-    return NULL
+struct Node* buildTree(struct Node *node, int* wArr, int *hArr, int *typeArr, int*postIndex, int size ){
+  if (size<*postIndex){ //BASE CASE
+    return node;
   }
     
-  
+   node = newNode(hArr, wArr, typeArr, postIndex, node);
   
   if(Space(node) == 1){//empty
-    Node * root = newNode(hArr, wArr, typeArr, PostIndex);
-    
-    builtTree(root->right, wArr, hArr, typeArr, &PostIndex, size);//right
-      
-    builtTree(root->left, wArr, hArr, typeArr, &PostIndex, size);//left
+   
+    node->right = (struct Node*)malloc(sizeof(struct Node));
+    buildTree(node->right, wArr, hArr, typeArr, postIndex, size);//right
+    node->left = (struct Node*)malloc(sizeof(struct Node));
+    buildTree(node->left, wArr, hArr, typeArr, postIndex, size);//left
+    return node;
       
 
 
   }
   
   else{
-    return NULL;
+    return node;
   }
-  return root;
+  
 }
-int Space(Node*node){
+
+int Space(struct Node * node){
     //return 0 if empty
     //return 1 if left is full
     //return 2 if both are full
+    /*if(node->left == NULL){
+      return 1;
+    }*/
+    if(node == NULL)
+      return 1;
     if(node->type >0){
       return 0;
     }
-    if(node->left == NULL){
-      return 1;
-    }
+    return 1;
+    
   }
-Node * newNode(int* hArr, int* wArr, int* typeArr, int * PostIndex){
-    Node *node = (Node*)malloc(sizeof(Node));
-    node->height = hArr[PostIndex];
-    node->width = wArr[PostIndex];
+struct Node * newNode(int* hArr, int* wArr, int* typeArr, int * postIndex, struct Node *node){
+    //struct Node *node = (struct Node*)malloc(sizeof(struct Node));
+   int ind = *postIndex;
+    node->height = hArr[ind];
+    node->width = wArr[ind];
     //node->label = label;
-    node->type = typeArr[PostIndex];
+    node->type = typeArr[ind];
     node->left = NULL;
     node->right = NULL;
-    *PostIndex++;
-    printf("   index = %d",PostIndex)
+    *postIndex=*postIndex+1;
+    //printf("   type: %d index = %d",typeArr[*postIndex-1],*postIndex);
     return node;
     
   }  
-void printPre(Node*node){
-  if (node ==NULL){
+
+void printPreD(struct Node*node, FILE *fp){
+  if (node == NULL){
     return;
   }
-  printf("%d",node->type);
-  printPre(node->left);
-  printPre(node->right);
+  printf("\ntype:%d   width:%d  height:%d\n",node->type, node->width, node->height);
+  fprintf(fp, "%d(%d,%d)\n", node->type, node->width, node->height);
+  printPreD(node->left, fp);
+  printPreD(node->right, fp);
+  
+}
+void printPoD(struct Node*node, FILE *fp){
+  if (node == NULL){
+    return;
+  }
+  
+  printPoD(node->left,fp);
+  printPoD(node->right,fp);
+  printf("\ntype:%d   width:%d  height:%d\n",node->type, node->width, node->height);
+  //fprintf(fp, "%d(%d,%d)\n", node->type, node->width, node->height);
 }
 int main(int argc, char *argv[]){ 
   int postIndex;
   
-  input(argv[1], &postIndex);
-  printf("\n %d", bigness);
+  int x = input(argv[1], &postIndex, argv[2], argv[3]);
+  //printf("\n %d", bigness);
   /*
   FILE*fp;
   int size;
