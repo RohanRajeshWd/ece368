@@ -6,7 +6,7 @@
 //#include "packing.h"
 //declarations
 int input(char*filename,  int* postIndex, char *file1, char* file2);
-void makeTree(int *wArr, int *hArr,int* typeArr, int *postIndex, FILE * fp1, FILE *fp2);
+void makeTree(int *wArr, int *hArr,int* typeArr, int *postIndex, char *f1, char * f2);
 struct Node* buildTree(struct Node *node, int *wArr, int *hArr, int* typeArr, int*postIndex, int size );
 struct Node * newNode(int* hArr, int* wArr, int* typeArr, int * postIndex, struct Node *node);
 void printPoD(struct Node*node, FILE*fp);
@@ -37,7 +37,11 @@ void deleteTree(struct Node* node)
     free(node); 
 }  
 void addStuff( struct Node * node){
-  
+  if(node->type>0){
+   return;
+}
+addStuff(node->right);
+addStuff(node->left);
  if (node->type == -1) //v
  {
   node->width = node->left->width+node->right->width;
@@ -62,11 +66,8 @@ if (node->type == -2)//h
    }
  
  
- if(node->type>0){
-   return;
-}
-addStuff(node->right);
-addStuff(node->left);
+ 
+
 
  
   
@@ -82,7 +83,7 @@ int input(char*filename,  int* postIndex, char *file1, char* file2){
   //size = countLine(fp);
   if (fp ==NULL){
     //*size = 0;
-    //return NULL; kys gcc you wothless piece of shit
+    return EXIT_FAILURE; //kys gcc you wothless piece of shit
   }
 
   char c;
@@ -175,19 +176,22 @@ int input(char*filename,  int* postIndex, char *file1, char* file2){
       
   }*/
   *postIndex = size-1;
-  FILE *fp1 = fopen(file1, "w");
-  FILE *fp2 = fopen(file2, "w");
+  //FILE *fp1 = fopen(file1, "w");
+  //FILE *fp2 = fopen(file2, "w");
   
- makeTree(wArr, hArr, typeArr, postIndex, fp1, fp2);
- fclose(fp1);
- fclose(fp2);
+ 
+ fclose(fp);
+ makeTree(wArr, hArr, typeArr, postIndex, file1, file2);
+ //fclose(fp1);
+ //fclose(fp2);
+ 
  free(typeArr);
  free(wArr);
  free(hArr);
 
  return 0;
 }
-void makeTree(int *wArr, int *hArr,int* typeArr, int *postIndex, FILE * fp1, FILE *fp2){
+void makeTree(int *wArr, int *hArr,int* typeArr, int *postIndex, char * f1, char *f2){
   int size = *postIndex;
   *postIndex= 0;
   //root = (struct Node*)malloc(sizeof(struct Node));
@@ -195,11 +199,15 @@ void makeTree(int *wArr, int *hArr,int* typeArr, int *postIndex, FILE * fp1, FIL
   root = (struct Node*)malloc(sizeof(struct Node));
   root = buildTree(root, wArr, hArr, typeArr, postIndex, size);
   //buildTree(root->left, wArr, hArr, typeArr, postIndex, size);
-  printf("before\n");
+  //printf("before\n");
+  FILE *fp1 = fopen(f1, "w");
   printPreD(root, fp1);
+  fclose(fp1);
   addStuff(root);
-  printf("after\n");
+  //printf("after\n");
+  FILE *fp2 = fopen(f2, "w");
   printPoD(root, fp2);
+  fclose(fp2);
   deleteTree(root);  
   if (root == NULL){
     printf("NULL");
@@ -262,14 +270,25 @@ struct Node * newNode(int* hArr, int* wArr, int* typeArr, int * postIndex, struc
     
   }  
 
-void printPreD(struct Node*node, FILE *fp){
+void printPreD(struct Node*node, FILE *fp1){
   if (node == NULL){
     return;
   }
-  printf("\ntype:%d   width:%d  height:%d\n",node->type, node->width, node->height);
-  fprintf(fp, "%d(%d,%d)\n", node->type, node->width, node->height);
-  printPreD(node->left, fp);
-  printPreD(node->right, fp);
+  //printf("\ntype:%d   width:%d  height:%d\n",node->type, node->width, node->height);
+  int type= node->type;
+  int width = node->width;
+  int height = node->height;
+  if (node->type == -1){
+    fprintf(fp1,"V\n");
+  }
+  if (node->type == -2){
+    fprintf(fp1,"H\n");
+  }
+  if(node->type>0){
+  fprintf(fp1, "%d(%d,%d)\n", type,width, height);
+  }
+  printPreD(node->left, fp1);
+  printPreD(node->right, fp1);
   
 }
 void printPoD(struct Node*node, FILE *fp){
@@ -279,13 +298,24 @@ void printPoD(struct Node*node, FILE *fp){
   
   printPoD(node->left,fp);
   printPoD(node->right,fp);
-  printf("\ntype:%d   width:%d  height:%d\n",node->type, node->width, node->height);
+  if (node->type == -1){
+    fprintf(fp,"V(%d,%d)\n", node->width, node->height);
+  }
+  if (node->type == -2){
+    fprintf(fp,"H(%d,%d)\n", node->width, node->height);
+  }
+  if (node->type > 0){
+  fprintf(fp, "%d(%d,%d)\n", node->type,node->width,node-> height);
+  }
   //fprintf(fp, "%d(%d,%d)\n", node->type, node->width, node->height);
 }
 int main(int argc, char *argv[]){ 
   int postIndex;
   
   int x = input(argv[1], &postIndex, argv[2], argv[3]);
+  if(argc != 5){
+    return EXIT_FAILURE;
+  }
   //printf("\n %d", bigness);
   /*
   FILE*fp;
