@@ -180,12 +180,12 @@ int input(char*filename,  int* postIndex, char *file1, char* file2){
   //FILE *fp2 = fopen(file2, "w");
   
  
- fclose(fp);
+ //fclose(fp);
  makeTree(wArr, hArr, typeArr, postIndex, file1, file2);
  //fclose(fp1);
  //fclose(fp2);
  
- free(typeArr);
+ free(type//Arr);
  free(wArr);
  free(hArr);
 
