@@ -185,7 +185,7 @@ int input(char*filename,  int* postIndex, char *file1, char* file2){
  //fclose(fp1);
  //fclose(fp2);
  
- free(type//Arr);
+ free(typeArr);
  free(wArr);
  free(hArr);
 

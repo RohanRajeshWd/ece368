@@ -4,11 +4,7 @@
 #include<ctype.h>
 #include "packing.h"
 //declarations
-#include <stdio.h>
-#include <stdlib.h>
-#include<string.h>
-#include<ctype.h>
-#include "packing.h"
+
 //declarations
 int input(char*filename,  int* postIndex);
 struct Node * makeTree(int *wArr, int *hArr,int* typeArr, int *postIndex);
