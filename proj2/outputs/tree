@@ -1,0 +1,6 @@
+leaf, node #: 1 char: a freq: 1
+leaf, node #: 2 char: b freq: 2
+leaf, node #: 3 char: c freq: 3
+empty node #: 4
+empty node #: 5
+empty node #: 6
