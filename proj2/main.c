@@ -22,7 +22,7 @@ struct frst {
 int readFile(char *filename,  int * fArr); //input
 struct frst * createFor(int *fArr, int numEl); void fillFor(int * fArr, struct frst * forest); struct Node * makeNode(int Freq, char chr, int type); //making forest
 void condense(struct frst * forest, int nComp); int smallNodes(struct frst *forest, int nComp); void combine( struct frst *forest, int s1, int s2, int nComp);//compressing forest into 1 tree
-void Ppo(struct Node *node, FILE * fp);//output
+void Ppo(struct Node *node, FILE * fp); void printBook(struct Node *node, FILE *fp, char direction, int path[]); void reset(int *path);//output
 //-----------------------------------------------------------//
 //FUNCTIONS
 //------------------------------input-----------------------------------------------------------//
@@ -38,12 +38,7 @@ int readFile(char *filename,  int * fArr){//debug with 40, 25, 26, 42
     if (c == EOF){
       break;
     }
-    if(c == ' '){
-      c = fgetc(fp);
-    }
-    if (c == '\n'){
-      c =fgetc(fp);//skip forwards by a step
-    }
+    
     fArr[c]++;
   }while(c != EOF );
 
@@ -113,8 +108,8 @@ int smallNodes(struct frst *forest, int nComp){
   //one left
   if(nComp == forest->capacity){
     for(int i =0; i < nComp; i++){
-     if(forest->tArr[i] == 1)
-      return i;
+      if(forest->tArr[i] == 1)
+        return i;
     } 
   }
   int largest = 0; 
@@ -125,7 +120,7 @@ int smallNodes(struct frst *forest, int nComp){
       index = i;
     }
   }
-  
+
   int smallest = largest;
   for (int i =0; i<nComp; i++){
     if((forest->nArr[i]->freq <= smallest) && (forest->tArr[i] == 1)){
@@ -142,8 +137,8 @@ void combine(struct frst *forest, int s1, int s2, int nComp){
   forest->nArr[nComp]->type = 0;
   forest->tArr[nComp] = 1;
   //assign left and right 
-  forest->nArr[nComp]->left = forest->nArr[s1]; 
-  forest->nArr[nComp]->right = forest->nArr[s2];
+  forest->nArr[nComp]->left = forest->nArr[s2]; 
+  forest->nArr[nComp]->right = forest->nArr[s1];
 
 }
 
@@ -153,13 +148,41 @@ void Ppo(struct Node *node, FILE * fp){
   if (node == NULL)
     return;
   if (node->type == 0){
-    fprintf(fp, "combo Node, Freq = %d\n", node->freq);
+    fprintf(fp, "0");
   }
   if (node->type == 1){
-    fprintf(fp,"leaf node: %c, freq = %d\n", node->value, node->freq);
+    fprintf(fp,"1%c", node->value);
   }
   Ppo(node->left, fp);
   Ppo(node->right, fp);
+}
+void reset(int *path){
+  for (int i=0; i <256; i++)
+    path[i] = 2;
+}
+void printBook(struct Node *node, FILE *fp, char direction, int path[]){
+  int i =0;
+  while(path[i] != 2){
+    i++;
+  }
+  if(direction == 'r'){
+    path[i] = 1;
+  }
+  else{
+    path[i] = 0;
+  }
+  if (node->type == 1){
+    fprintf(fp, "%c:", node->value);
+    i=0;
+    while(path[i] != 2){
+      fprintf(fp, "%d", path[i]);
+      i++;
+    }
+    fprintf(fp,"\n");
+    return;
+  }
+  printBook(node->left, fp, 'l', path);
+  printBook(node->right, fp, 'r', path);
 }
 //------------------------------------------------------------------------------------
 int main(int argc, char *argv[]){
@@ -171,16 +194,16 @@ int main(int argc, char *argv[]){
 
   //TESTCODE-------------------------
   /*
-  FILE *f2= fopen(argv[2], "w"); 
-  while(j<=255){//print Arr
-    if (fArr[j]!=0&&fArr[j]!=-1){
-      fprintf(f2,"index: %d char: %c freq: %d \n",j, j, fArr[j]);
+     FILE *f2= fopen(argv[2], "w"); 
+     while(j<=255){//print Arr
+     if (fArr[j]!=0&&fArr[j]!=-1){
+     fprintf(f2,"index: %d char: %c freq: %d \n",j, j, fArr[j]);
 
-    }
+     }
 
-    j++;
-  }
-  fclose(f2);*/
+     j++;
+     }
+     fclose(f2);*/
   //--------------------------------------------
 
   //MAKING FOREST// b 108 63 72 67
@@ -200,19 +223,19 @@ int main(int argc, char *argv[]){
 
   //TESTCODE--------------------------------------------------------
   /*FILE*f1= fopen(argv[3], "w");
-  j=0;
-  for(int i =0;i<forest->capacity;i++){//print forest
+    j=0;
+    for(int i =0;i<forest->capacity;i++){//print forest
     if(forest->tArr[i]==1){
-      fprintf(f1,"leaf, node #: %d char: %c freq: %d\n",i+1, forest->nArr[i]->value, forest->nArr[i]->freq );  
+    fprintf(f1,"leaf, node #: %d char: %c freq: %d\n",i+1, forest->nArr[i]->value, forest->nArr[i]->freq );  
     }
     if (forest->tArr[i]==0){
-      fprintf(f1,"empty node #: %d\n", i+1);
+    fprintf(f1,"empty node #: %d\n", i+1);
     }   
 
-  }
-  j=0;
+    }
+    j=0;
 
-  fclose(f1);*/
+    fclose(f1);*/
   //---------------------------------------------------------------
   //CONDENSE FOREST
   int numCt = forest->capacity /2;
@@ -220,8 +243,17 @@ int main(int argc, char *argv[]){
   //TESTCODE----------------------------------------------------------
   FILE * fp3 = fopen(argv[2], "w");
 
+  //Ppo(forest->nArr[numEl*2-2], fp3);
+
+  //-----------------------------------------------------------------
+  //FILE OUTPUT
+  int path[256];
+  reset(path);
+  /*printBook(forest->nArr[numEl*2-2]->left, fp3, 'l', path);
+  printBook(forest->nArr[numEl*2-2]->right, fp3, 'r', path);*/
   Ppo(forest->nArr[numEl*2-2], fp3);
-  fclose(fp3);
+  fclose(fp3);  
+
 }
 
 
