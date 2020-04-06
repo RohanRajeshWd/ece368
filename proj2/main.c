@@ -21,7 +21,7 @@ struct frst {
 //-----------------------------------------------------------//
 int readFile(char *filename,  int * fArr); //input
 struct frst * createFor(int *fArr, int numEl); void fillFor(int * fArr, struct frst * forest); struct Node * makeNode(int Freq, char chr, int type); //making forest
-void condense(struct frst * forest, int nCt); void smallNodes(struct frst *forest, int smallest[]); int emptyNode(struct frst*forest); void combine(struct frst*forest, int empty, int smallest[] ); //compressing forest into 1 tree
+void condense(struct frst * forest, int nComp); int smallNodes(struct frst *forest, int nComp); void combine( struct frst *forest, int s1, int s2, int nComp);//compressing forest into 1 tree
 void Ppo(struct Node *node, FILE * fp);//output
 //-----------------------------------------------------------//
 //FUNCTIONS
@@ -54,7 +54,7 @@ int readFile(char *filename,  int * fArr){//debug with 40, 25, 26, 42
 //create forest---------------------------------------------------
 struct frst * createFor(int *fArr, int numEl){
   struct frst * forest  = (struct frst *)malloc(sizeof (struct frst));
-  forest->capacity= 2*numEl;
+  forest->capacity= 2*numEl-1 ;
   forest->nArr = (struct Node**)malloc((forest->capacity) * sizeof(struct node*));
   forest->fArr = (int *)calloc(numEl*2,sizeof(int));
   forest->tArr = (int *)calloc(numEl*2,sizeof(int));
@@ -63,7 +63,7 @@ struct frst * createFor(int *fArr, int numEl){
 void fillFor(int * fArr, struct frst * forest){
   //create node to add
   int j=0;
-  
+
   for (int i=0; i<=255; i++){
     //printf("%d", i);
     if (fArr[i] != 0){
@@ -73,13 +73,13 @@ void fillFor(int * fArr, struct frst * forest){
       forest->fArr[j] = fArr[i];
       j++;
     }
-    
+
   }
   for (int l = j; l<=forest->capacity;l++){
-  forest->fArr[l]=-1;
-  forest->nArr[l] = makeNode(-1, '0', 0);
-  forest->tArr[l]= 0;
-}
+    forest->fArr[l]=-1;
+    forest->nArr[l] = makeNode(-1, '0', 0);
+    forest->tArr[l]= 0;
+  }
 }
 struct Node * makeNode(int Freq, char chr, int type){
   struct Node *node = (struct Node*)malloc(sizeof(struct Node));
@@ -91,105 +91,63 @@ struct Node * makeNode(int Freq, char chr, int type){
 }
 //---------------------condense forest into one tree---------------------------------------
 
-void condense(struct frst * forest, int nCt){
-  if (nCt == 0){
+void condense(struct frst * forest, int nComp){
+  if (nComp == (forest->capacity)){
     return;
-  }
+  } // nComp is the place in the array 
   //find smallest 2 nodes
-  int smallest[2];
-  smallNodes(forest, smallest);
-  //find an empty location
-  int empty = emptyNode(forest);
-  //combine 2 nodes in an empty location, delete the cells
-  combine(forest, empty, smallest);
-  condense(forest, nCt-1);
-  
-}
-void smallNodes(struct frst *forest, int smallest[]){
-  int j =0;
-  
-  //case first few nodes are empty
-  if (forest->nArr[j]->type!=1){
-    while(forest->nArr[j]->type != 1)
-      j++;
+  int s1 = smallNodes(forest, nComp);
+  int s2 = smallNodes(forest, nComp);
+  int temp;
+  if (forest->nArr[s2]->freq < forest->nArr[s1]->freq){
+    temp = s1;
+    s1 = s2;
+    s2 = temp;
   }
-  smallest[0]=j++;
-  j=0;
-  if (forest->nArr[j]->type != 1){
-    while(forest->nArr[j]->type != 1)
-      j++;
-  }
-  smallest[1]=j++;
-  
-  while(j<forest->capacity){
-    if (forest->nArr[j]->type != 1){
-      while(forest->nArr[j]->type != 1)
-      j++;
-      
-    }
-    if(forest->fArr[j]<smallest[0]){
-      smallest[0] == j;
-    }
-    else{
-      if(forest->fArr[j]<smallest[1]){
-      smallest[1] == j;
-    }
-  }
-  j++;
-  }
+  //combine 2 nodes in an empty location, mark cells for deletion
+  combine(forest, s1, s2, nComp);
+  condense(forest, nComp+1);
 
 }
-int emptyNode(struct frst*forest){//finds an empty node
-  int i =0;
-  while (forest->tArr[i] != 0){
-    i++;
+int smallNodes(struct frst *forest, int nComp){
+  //one left
+  if(nComp == forest->capacity){
+    for(int i =0; i < nComp; i++){
+     if(forest->tArr[i] == 1)
+      return i;
+    } 
   }
-    return(i);
-}
-void combine(struct frst*forest, int empty, int smallest[] ){
- //combine smallest into empty 
- int mini1 = smallest[0];
- int mini2 = smallest[1];
- forest->fArr[empty] = forest->fArr[mini1]+forest->fArr[mini2];
- forest->tArr[empty] = 2;
- forest-> nArr[empty]->type= 0; 
- forest->nArr[empty]->freq = forest->fArr[empty];
- //clear the 2 leafs
- forest->tArr[mini1]= 2;
- forest->tArr[mini2]= 2;
+  int largest = 0; 
+  int index = 0;
+  for (int i = 0; i<nComp;i++){
+    if ((forest->nArr[i]->freq >largest) && (forest->tArr[i] == 1)){
+      largest = forest->nArr[i]->freq;
+      index = i;
+    }
+  }
   
+  int smallest = largest;
+  for (int i =0; i<nComp; i++){
+    if((forest->nArr[i]->freq <= smallest) && (forest->tArr[i] == 1)){
+      smallest = forest->nArr[i]->freq;
+      index = i;
+    }
+  }
+  forest->tArr[index] = 2;
+  return index; 
 }
-/*
-int istwo(forest){
-  int j = 0;
-  for (int i= 0; i<forest->capacity;i++){
-    if (forest->tArr[i]==1){
-      j++;
-    }
-  }
-  if (j>2)
-    return 0;
-  if (j = 2){
-    int l =0;
-    for (int i= 0; i<forest->capacity;i++){
-    if (forest->tArr[i]==1){
-      smallest[l];
-      l++
-    }
-  }
-  }
-  if (j = 1){
-    for (int i= 0; i<forest->capacity;i++){
-    if (forest->tArr[i]==1){
-     smallest[l]
-    }
-  }
-    
-  }
-    
+void combine(struct frst *forest, int s1, int s2, int nComp){
+  //combine both nodes into the empty one
+  forest->nArr[nComp]->freq = forest->nArr[s1]->freq+forest->nArr[s2]->freq;//combine freqs
+  forest->nArr[nComp]->type = 0;
+  forest->tArr[nComp] = 1;
+  //assign left and right 
+  forest->nArr[nComp]->left = forest->nArr[s1]; 
+  forest->nArr[nComp]->right = forest->nArr[s2];
+
 }
-*/
-//----------------------------------------------------------//
+
+///----------------------------------------------------------//
 //----------------------------OUTPUT----------------------------------------------
 void Ppo(struct Node *node, FILE * fp){
   if (node == NULL)
@@ -210,18 +168,19 @@ int main(int argc, char *argv[]){
   int *fArr =(int*)calloc(256,sizeof(int));
   readFile(argv[1],fArr);
   int j =0;
- 
+
   //TESTCODE-------------------------
+  /*
   FILE *f2= fopen(argv[2], "w"); 
   while(j<=255){//print Arr
     if (fArr[j]!=0&&fArr[j]!=-1){
       fprintf(f2,"index: %d char: %c freq: %d \n",j, j, fArr[j]);
-      
+
     }
-    
+
     j++;
   }
-  fclose(f2);
+  fclose(f2);*/
   //--------------------------------------------
 
   //MAKING FOREST// b 108 63 72 67
@@ -238,32 +197,31 @@ int main(int argc, char *argv[]){
   fillFor(fArr, forest);
   //-------------------------------------------//
 
-  
+
   //TESTCODE--------------------------------------------------------
-  FILE*f1= fopen(argv[3], "w");
+  /*FILE*f1= fopen(argv[3], "w");
   j=0;
   for(int i =0;i<forest->capacity;i++){//print forest
     if(forest->tArr[i]==1){
-    fprintf(f1,"leaf, node #: %d char: %c freq: %d\n",i+1, forest->nArr[i]->value, forest->nArr[i]->freq );  
+      fprintf(f1,"leaf, node #: %d char: %c freq: %d\n",i+1, forest->nArr[i]->value, forest->nArr[i]->freq );  
     }
     if (forest->tArr[i]==0){
       fprintf(f1,"empty node #: %d\n", i+1);
     }   
-    
+
   }
   j=0;
 
-  fclose(f1);
+  fclose(f1);*/
   //---------------------------------------------------------------
   //CONDENSE FOREST
   int numCt = forest->capacity /2;
-  condense(forest, numCt);
+  condense(forest, numEl);
   //TESTCODE----------------------------------------------------------
-  FILE * fp3 = fopen(argv[4], "w");
-  Ppo(forest->nArr[numCt*2-2], fp3);
+  FILE * fp3 = fopen(argv[2], "w");
+
+  Ppo(forest->nArr[numEl*2-2], fp3);
   fclose(fp3);
-
-
 }
 
 
